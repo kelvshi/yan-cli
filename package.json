@@ -1,0 +1,33 @@
+{
+  "name": "yan-cli",
+  "version": "0.0.4",
+  "description": "fe devtools",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test_rename": "./bin/yan --config ./test/yan.config.js rename"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kelvshi/yan-cli.git"
+  },
+  "keywords": [
+    "fe",
+    "devtools"
+  ],
+  "author": "kelvshi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kelvshi/yan-cli/issues"
+  },
+  "bin": {
+    "yan": "bin/yan"
+  },
+  "homepage": "https://github.com/kelvshi/yan-cli#readme",
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "chalk": "^2.4.1",
+    "commander": "^2.15.1",
+    "glob": "^7.1.2"
+  }
+}

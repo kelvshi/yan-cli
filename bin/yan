@@ -1,0 +1,128 @@
+#!/usr/bin/env node
+
+const path = require('path');
+const fs = require('fs');
+const pkg = require('../package.json');
+const program = require('commander');
+const run = require('../index.js');
+const utils = require('../lib/utils.js');
+
+program
+    .version(pkg.version, '-v, --version')
+    .option('--prefix <value>', 'rename 操作时的文件名前缀 (default "")', '')
+    .option('--src <value>', '操作的文件glob 以当前目录为相对路径 (default "")', '')
+    .option('--search <value>', 'rename 操作时要替换的文件名的正则 (default "")', '')
+    .option('--replace <value>', 'rename 操作时要替换的文件字符串 (default "")', '')
+    .option('--config <value>', 'rename 操作时要替换的文件字符串 (default yan.config.js)', '')
+    .option('--noconfig', '不使用 config 配置文件')
+    .parse(process.argv);
+
+// 解析配置config
+const analysisConfig = async function () {
+    if (program.noconfig) {
+        return;
+    }
+    // 判断配置文件是否存在，存在则以配置文件为主
+    let config = program.config;
+    if (config) {
+        config = require(path.resolve(process.cwd(), config));
+    } else { // 不存在，默认yan.config.js
+        let file = path.resolve(process.cwd(), 'yan.config.js');
+        let isExist = await utils.isExist(file);
+        if (isExist) {
+            config = require(file);
+        }
+    }
+    return config;
+}
+// 执行一个任务
+const runOneTask = async function (action, config) {
+    let {
+        name,
+        prefix,
+        src,
+        search,
+        replace,
+        map
+    } = config;
+    utils.log(`${action}[${name}] start...`, action, 'blue');
+    let promise;
+    switch (action) {
+        case 'rename':
+            promise = await run['rename']({
+                prefix,
+                src,
+                search,
+                replace,
+                map
+            });
+            break;
+        default:
+            if (run[action]) {
+                run[action]();
+            } else {
+                throw new Error('操作不存在');
+            }
+            break;
+    }
+    utils.log(`${action}[${name}] finished!`, action, 'blue');
+    return promise;
+};
+
+;(async function () {
+    try {
+        // 解析config
+        let config = await analysisConfig();
+        // 解析action
+        let action = program.args[0];
+        if (!action) {
+            // 如果有config, 从config里面找
+            if (config && config['main']) {
+                action = config['main'];
+            } else {
+                program.outputHelp();
+                return;
+            }
+        }
+        // 开始操作, 支持多任务，child为action的子任务,默认取第一个key
+        let taskConfigs = [];
+        if (config) {
+            let child = program.args[1];
+            let actionConfig = config[action];
+            if (child) {
+                child = child.split(',');
+                child.forEach(item => {
+                    if (actionConfig[item]) {
+                        taskConfigs.push(Object.assign({}, actionConfig[item], {
+                            name: child
+                        }));
+                    } else {
+                        throw new Error(`${action}['${child}'] no exist!`);
+                    }
+                });
+            } else { // 不存在且只有一个，则默认取第一个配置
+                let keys = Object.keys(actionConfig);
+                if (keys.length === 1) {
+                    let item = keys[0];
+                    taskConfigs.push(Object.assign({}, actionConfig[item], {
+                        name: item
+                    }));
+                }
+            }
+        } else { // 没有config,直接使用命令行的参数
+            taskConfigs.push(Object.assign({}, program, {
+                name: 'task'
+            }));
+        }
+
+        // 开始操作
+        let taskPromises = [];
+        taskConfigs.forEach((task) => {
+            taskPromises.push(runOneTask(action, task));
+        });
+        await Promise.all(taskPromises);
+        utils.log('all task done!');
+    } catch (error) {
+        utils.error(error);
+    }
+})();
