@@ -1,6 +1,6 @@
 {
   "name": "yan-cli",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "fe devtools",
   "main": "index.js",
   "scripts": {
