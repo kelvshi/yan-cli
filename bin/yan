@@ -59,7 +59,7 @@ const runOneTask = async function (action, config) {
             break;
         default:
             if (run[action]) {
-                run[action](config);
+                await run[action](config);
             } else {
                 throw new Error('操作不存在');
             }
