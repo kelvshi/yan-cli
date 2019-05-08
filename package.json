@@ -1,6 +1,6 @@
 {
   "name": "yan-cli",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "fe devtools",
   "main": "index.js",
   "scripts": {
@@ -28,9 +28,7 @@
     "bluebird": "^3.5.1",
     "chalk": "^2.4.1",
     "commander": "^2.15.1",
-    "glob": "^7.1.2"
-  },
-  "devDependencies": {
+    "glob": "^7.1.2",
     "https-proxy-agent": "^2.2.1",
     "node-fetch": "^2.5.0",
     "socks-proxy-agent": "^4.0.2"
